@@ -16,4 +16,4 @@ RUN playwright install chromium
 COPY . .
 
 # রান করার কমান্ড (এখানেই Start Command দেওয়া আছে, Render-এ লিখতে হবে না)
-CMD gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+CMD gunicorn --threads 4 --workers 1 --bind 0.0.0.0:$PORT app:app
