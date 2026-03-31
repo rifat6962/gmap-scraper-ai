@@ -1,3 +1,15 @@
-git add render.yaml
-git commit -m "Fixed render.yaml build command"
-git push origin main
+services:
+  - type: web
+    name: maps-scraper
+    env: docker  # <-- এখানে python এর বদলে docker দেওয়া হয়েছে
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: scraper-db
+          property: connectionString
+
+databases:
+  - name: scraper-db
+    plan: free
