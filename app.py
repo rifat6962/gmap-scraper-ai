@@ -1,11 +1,9 @@
 from flask import Flask, request, send_file, render_template_string
-import pandas as pd
+import csv
 from playwright.sync_api import sync_playwright
-import os
 
 app = Flask(__name__)
 
-# Eita hocche tomar website er design (HTML)
 HTML_PAGE = """
 <!DOCTYPE html>
 <html>
@@ -35,17 +33,14 @@ def scrape():
     leads = []
     
     try:
-        # Playwright library diye background e browser open korbe
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             
-            # Google Map e search korbe
             search_url = f"https://www.google.com/maps/search/{query.replace(' ', '+')}"
             page.goto(search_url)
-            page.wait_for_timeout(5000) # Result ashar jonno 5 second wait korbe
+            page.wait_for_timeout(5000)
             
-            # Business er nam gulo collect korbe (Google map er link theke)
             elements = page.locator('a[href*="/maps/place/"]').all()
             
             for el in elements:
@@ -64,12 +59,17 @@ def scrape():
         return f"Scraping failed! Error: {str(e)}"
         
     if not leads:
-        return "Kono lead pawa jayni! Hoyto Render er IP Google block koreche (Captcha). Eijonnoi API best."
+        return "Kono lead pawa jayni! Hoyto Render er IP Google block koreche."
 
-    # Data gulo CSV te convert kora
-    df = pd.DataFrame(leads).drop_duplicates()
+    # Pandas er bodole Python er built-in CSV use korlam (Fast and lightweight)
     csv_filename = 'leads_scraped.csv'
-    df.to_csv(csv_filename, index=False)
+    with open(csv_filename, mode='w', newline='', encoding='utf-8') as file:
+        # Same link jate bar bar na ashe tai duplicate bad dicchi
+        unique_leads = [dict(t) for t in {tuple(d.items()) for d in leads}]
+        
+        writer = csv.DictWriter(file, fieldnames=['Business Name', 'Google Map Link', 'Keyword Info'])
+        writer.writeheader()
+        writer.writerows(unique_leads)
     
     return send_file(csv_filename, as_attachment=True)
 
