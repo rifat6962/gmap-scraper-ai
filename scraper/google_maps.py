@@ -45,7 +45,7 @@ class GoogleMapsScraper:
             try:
                 # Navigate to Google Maps search
                 search_url = f"https://www.google.com/maps/search/{search_query.replace(' ', '+')}"
-                page.goto(search_url, wait_until='networkidle', timeout=30000)
+                page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
                 page.wait_for_timeout(3000)
                 
                 # Handle consent dialog if present
